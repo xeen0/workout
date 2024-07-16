@@ -49,7 +49,7 @@ const NodeOnGraph = ({ node }) => {
 	};
 
 	return (
-		<div className="relative bg-white group hover:border-gray-100 mx-1">
+		<div className="relative bg-transparent group hover:border-gray-100 mx-1">
 			<div className="absolute -top-6 z-50 left-0 right-0 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
 				<span className="text-gray-700">
 					{node.type

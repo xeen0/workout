@@ -117,7 +117,8 @@ const App = () => {
 									</div>
 								</DropableArea>
 							</div>
-							<div className="w-full h-[50vh]">
+							<div className="w-full ">
+								<div className='h-[28rem]'>
 								<DropableArea
 									id="graphArea"
 									direction="horizontal"
@@ -140,6 +141,7 @@ const App = () => {
 										))}
 									</Graph>
 								</DropableArea>
+								</div>
 								<div>
 									<DropableArea
 										id="workoutArea"
