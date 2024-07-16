@@ -1,189 +1,165 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { DragDropContext } from '@hello-pangea/dnd';
-import DragabbleNode from './components/DragableNode.jsx';
-import DropableArea from './components/DropableArea.jsx';
-import Graph from './components/Graph.jsx';
-import Headers from './components/Header.jsx';
-import Node from './components/Node.jsx';
-import NodeOnGraph from './components/NodeOnGraph.jsx';
-import WorkoutBuilder from './components/WorkoutBuilder.jsx';
+import { v4 as uuidv4 } from 'uuid';
+
+import {
+	DragableNode,
+	DropableArea,
+	Graph,
+	Header,
+	Node,
+	NodeOnGraph,
+	WorkSets,
+} from './components';
 
 import { useAtom } from 'jotai';
-import { graphNodesAtom, selectedWorkoutAtom } from './Atoms/GraphNodesAtom.js';
+import {
+	graphNodesAtom,
+	initialNodesData,
+	isResizingAtom,
+	totalDistanceAtom,
+} from './Atoms/GraphNodesAtom.js';
 const App = () => {
-	const data = {
-		WarmUp: [
-			{
-				value: 40,
-				height: '1rem',
-				name: 'Warm Up',
-			},
-		],
-		Active: [
-			{
-				value: 80,
-				height: '2rem',
-				name: 'Active',
-			},
-		],
-		CoolDown: [
-			{
-				value: 20,
-				height: '0.75rem',
-				name: 'Cool Down',
-			},
-		],
-		RampUp: [
-			{
-				value: 20,
-				height: '0.75rem',
-				name: 'Easy',
-			},
-			{
-				value: 40,
-				height: '1rem',
-				name: 'Medium',
-			},
-			{
-				value: 60,
-				height: '1.5rem',
-				name: 'Hard',
-			},
-			{
-				value: 80,
-				height: '2rem',
-				name: 'Extra Hard',
-			},
-		],
-		RampDown: [
-			{
-				value: 80,
-				height: '2rem',
-				name: 'Extra Hard',
-			},
-			{
-				value: 60,
-				height: '1.5rem',
-				name: 'Hard',
-			},
-			{
-				value: 40,
-				height: '1rem',
-				name: 'Medium',
-			},
-			{
-				value: 20,
-				height: '0.75rem',
-				name: 'Easy',
-			},
-		],
-		TwoStep: [
-			{
-				value: 40,
-				height: '1rem',
-				name: 'Easy',
-			},
-			{
-				value: 60,
-				height: '1.5rem',
-				name: 'Hard',
-			},
-		],
-	};
+	const [data] = useAtom(initialNodesData);
 	const [graphNodes, setGraphNodes] = useAtom(graphNodesAtom);
-	const [_, setSelectedWorkout] = useAtom(selectedWorkoutAtom);
+	const [totalDistance] = useAtom(totalDistanceAtom);
+	const [isResizing] = useAtom(isResizingAtom);
+	const [isDragDisabled, setIsDragDisabled] = useState(false);
+	const [allowDrop, setAllowDrop] = useState([]);
+	useEffect(() => {
+		setIsDragDisabled(isResizing);
+	}, [isResizing]);
+	const onDragStart = (start) => {
+		const { draggableId, source } = start;
+		if (source.droppableId === 'graphArea') {
+			setAllowDrop([...allowDrop, 'graphArea']);
+		} else if (source.droppableId === 'nodesArea') {
+			setAllowDrop([...allowDrop, 'nodesArea', 'graphArea']);
+		} else if (source.droppableId === 'workoutArea') {
+			setAllowDrop([...allowDrop, 'workoutArea']);
+		}
+	};
 	const onDragEnd = (result) => {
 		const { source, destination } = result;
+		console.log(allowDrop);
+		setAllowDrop([]);
 		if (!destination) return;
+		if (
+			source.droppableId == 'graphArea' &&
+			destination.droppableId != 'graphArea'
+		)
+			return;
+		if (
+			source.droppableId == 'workoutArea' &&
+			destination.droppableId != 'workoutArea'
+		)
+			return;
+		if (
+			source.droppableId == 'nodesArea' &&
+			destination.droppableId == 'nodesArea'
+		)
+			return;
+
 		if (source.droppableId === 'nodesArea') {
-			setGraphNodes([
-				...graphNodes,
-				{
-					type: result.draggableId,
-					distances: data[result.draggableId].map((item) => {
-						return { distance: 2, name: item.name, height: item.value };
-					}),
-					totalDistance: data[result.draggableId]
-						.map((item) => 2)
-						.reduce((a, b) => a + b),
-					height: data[result.draggableId].map((i) => i.value + '%'),
-				},
-			]);
-			selectNodeOnGraph({
+			const items = [...graphNodes];
+			items.splice(destination.index, 0, {
+				uuid: uuidv4(),
 				type: result.draggableId,
 				distances: data[result.draggableId].map((item) => {
-					return { distance: 2, name: item.name, height: item.height };
+					return { distance: 2, ...item };
 				}),
 				totalDistance: data[result.draggableId]
 					.map((item) => 2)
-					.reduce((a, b) => a + b),
-				height: data[result.draggableId],
+					.reduce((a, b) => a + b, 0),
 			});
-		}
-		if (source.droppableId === 'graphArea') {
+			setGraphNodes(items);
+		} else if (
+			source.droppableId === 'graphArea' ||
+			source.droppableId === 'workoutArea'
+		) {
 			const reorderedBars = Array.from(graphNodes);
 			const [movedBar] = reorderedBars.splice(source.index, 1);
 			reorderedBars.splice(result.destination.index, 0, movedBar);
 			setGraphNodes(reorderedBars);
 		}
 	};
-	const selectNodeOnGraph = (e) => {
-		setSelectedWorkout(e);
-	};
+
 	return (
 		<div className="flex justify-center">
 			<div className="w-4/5">
 				<div>
-					<Headers />
+					<Header />
 				</div>
 				<div className="w-full">
-					<DragDropContext onDragEnd={onDragEnd}>
-						<div className="flex">
+					<DragDropContext onDragEnd={onDragEnd} onDragStart={onDragStart}>
+						<div className="flex gap-2">
 							<div>
-								<DropableArea id="nodesArea">
-									<div className="px-4 mx-4">
-										{Object.keys(data).map((item, index) => (
-											<DragabbleNode
-												id={`${item.toString()}`}
-												index={index}
-												key={item}
-												selectNodeOnGraph={() => {}}>
-												<Node key={index} node={data[item]} />
-											</DragabbleNode>
-										))}
+								<DropableArea
+									id="nodesArea"
+									direction="horizontal"
+									isDropDisabled={!allowDrop.includes('nodesArea')}>
+									<div className="w-full mx-auto py-2 divide-y divide-gray-200	h-[40vh] bg-white border border-gray-200 rounded-lg shadow-lg mt-3 ">
+										<div className="text-center px-2 font-medium text-lg">
+											Click or drag the blocks to build workout
+										</div>
+										<div className="px-4 mx-4 grid grid-flow-row grid-cols-3 gap-x-3 pt-4">
+											{Object.keys(data).map((item, index) => (
+												<DragableNode
+													id={item}
+													index={index}
+													key={index}
+													isResizing={isResizing}>
+													<Node key={index} node={data[item]} title={item} />
+												</DragableNode>
+											))}
+										</div>
 									</div>
 								</DropableArea>
 							</div>
-							<div className="w-full">
-								<DropableArea id="graphArea">
+							<div className="w-full h-[50vh]">
+								<DropableArea
+									id="graphArea"
+									direction="horizontal"
+									isDropDisabled={!allowDrop.includes('graphArea')}>
 									<Graph nodes={graphNodes}>
 										{graphNodes.map((node, index) => (
-											<DragabbleNode
-												id={index.toString()}
+											<DragableNode
+												id={node.uuid + 'graphNodes'}
 												node={node}
 												index={index}
-												key={node}
-												selectNodeOnGraph={selectNodeOnGraph}>
-												<NodeOnGraph
-													key={index}
-													node={node}
-													totalLength={graphNodes.reduce(
-														(sum, a) => sum + a.totalDistance,
-														0
-													)}
-													onClick={(e) => console.log(e)}
-												/>
-											</DragabbleNode>
+												propStyles={{
+													width:
+														(node.totalDistance / totalDistance) * 100 + '%',
+												}}
+												isResizing={isDragDisabled}
+												classes="w-full"
+												key={node.uuid + isDragDisabled}>
+												<NodeOnGraph key={node.uuid} node={node} />
+											</DragableNode>
 										))}
 									</Graph>
 								</DropableArea>
+								<div>
+									<DropableArea
+										id="workoutArea"
+										direction="vertical"
+										isDropDisabled={!allowDrop.includes('workoutArea')}>
+										{graphNodes.map((node, index) => (
+											<DragableNode
+												id={node.uuid + 'workout'}
+												index={index}
+												key={node.uuid}>
+												<div key={node.uuid} className="my-2">
+													<WorkSets node={node} key={node.uuid} />
+												</div>
+											</DragableNode>
+										))}
+									</DropableArea>
+								</div>
 							</div>
 						</div>
 					</DragDropContext>
-				</div>
-				<div>
-					<WorkoutBuilder />
 				</div>
 			</div>
 		</div>

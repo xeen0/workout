@@ -1,48 +1,37 @@
 import { Draggable } from '@hello-pangea/dnd';
 import React from 'react';
 
-function getStyle(style, snapshot) {
+function getStyle(style, snapshot, propStyles = {}) {
 	if (!snapshot.isDropAnimating) {
-		return style;
+		return {
+			...style,
+			width: snapshot.isDragging ? style.width : propStyles.width,
+		};
 	}
-	const { moveTo, curve, duration } = snapshot.dropAnimation;
-	// move to the right spot
-	const translate = `translate(${moveTo.x}px, ${moveTo.y}px)`;
-	// add a bit of turn for fun
-	const rotate = 'rotate(0.5turn)';
-
-	// patching the existing style
 	return {
 		...style,
-		transform: `${translate}`,
-		// slowing down the drop because we can
-		transition: `all ${curve} ${duration + 1}s`,
+		width: snapshot.isDragging ? style.width : propStyles.width,
 	};
 }
 
-const DragabbleNode = ({
-	id,
-	index,
-	node,
-	style,
-	children,
-	selectNodeOnGraph,
-}) => (
-	<Draggable draggableId={id} index={index} onClick={() => console.log('s')}>
-		{(provided, snapshot) => (
-			<div
-				ref={provided.innerRef}
-				{...provided.draggableProps}
-				{...provided.dragHandleProps}
-				className="block w-full"
-				onClick={() => selectNodeOnGraph(node)}
-				// isDragging={snapshot.isDragging && !snapshot.isDropAnimating}
-				// style={getStyle(provided.draggableProps.style, snapshot)}
-			>
-				{children}
-			</div>
-		)}
-	</Draggable>
-);
+const DragabbleNode = ({ id, index, children, propStyles, isResizing }) => {
+	return (
+		<Draggable
+			draggableId={id}
+			index={index}
+			isDragDisabled={isResizing && id.includes('graphNodes')}>
+			{(provided, snapshot) => (
+				<div
+					ref={provided.innerRef}
+					{...provided.draggableProps}
+					{...provided.dragHandleProps}
+					className="w-full max-w-full box-border"
+					style={getStyle(provided.draggableProps.style, snapshot, propStyles)}>
+					{children}
+				</div>
+			)}
+		</Draggable>
+	);
+};
 
 export default DragabbleNode;
