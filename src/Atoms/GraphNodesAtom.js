@@ -2,7 +2,6 @@ import { atom } from 'jotai';
 import { v4 as uuidv4 } from 'uuid';
 
 export const graphNodesAtom = atom([]);
-export const selectedWorkoutAtom = atom([]);
 export const totalDistanceAtom = atom((get) => {
 	const graphNodes = get(graphNodesAtom);
 	let total = graphNodes.reduce((total, item) => {
@@ -14,6 +13,7 @@ export const totalDistanceAtom = atom((get) => {
 	return total;
 });
 
+export const graphWidthAtom = atom(0);
 export const isResizingAtom = atom(false);
 export const initialNodesData = atom({
 	WarmUp: [

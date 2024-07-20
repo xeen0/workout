@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { DragDropContext } from '@hello-pangea/dnd';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,23 +13,16 @@ import {
 	WorkSets,
 } from './components';
 
+import useUpdateWidth from './Hooks/useUpdateWidth.js';
+
+
 import { useAtom } from 'jotai';
-import {
-	graphNodesAtom,
-	initialNodesData,
-	isResizingAtom,
-	totalDistanceAtom,
-} from './Atoms/GraphNodesAtom.js';
+import { graphNodesAtom, initialNodesData } from './Atoms/GraphNodesAtom.js';
 const App = () => {
 	const [data] = useAtom(initialNodesData);
 	const [graphNodes, setGraphNodes] = useAtom(graphNodesAtom);
-	const [totalDistance] = useAtom(totalDistanceAtom);
-	const [isResizing] = useAtom(isResizingAtom);
-	const [isDragDisabled, setIsDragDisabled] = useState(false);
 	const [allowDrop, setAllowDrop] = useState([]);
-	useEffect(() => {
-		setIsDragDisabled(isResizing);
-	}, [isResizing]);
+	useUpdateWidth()
 	const onDragStart = (start) => {
 		const { draggableId, source } = start;
 		if (source.droppableId === 'graphArea') {
@@ -42,7 +35,6 @@ const App = () => {
 	};
 	const onDragEnd = (result) => {
 		const { source, destination } = result;
-		console.log(allowDrop);
 		setAllowDrop([]);
 		if (!destination) return;
 		if (
@@ -93,8 +85,8 @@ const App = () => {
 				</div>
 				<div className="w-full">
 					<DragDropContext onDragEnd={onDragEnd} onDragStart={onDragStart}>
-						<div className="flex gap-2">
-							<div>
+						<div className="flex gap-4">
+							<div className="w-1/4 ">
 								<DropableArea
 									id="nodesArea"
 									direction="horizontal"
@@ -105,11 +97,7 @@ const App = () => {
 										</div>
 										<div className="px-4 mx-4 grid grid-flow-row grid-cols-3 gap-x-3 pt-4">
 											{Object.keys(data).map((item, index) => (
-												<DragableNode
-													id={item}
-													index={index}
-													key={index}
-													isResizing={isResizing}>
+												<DragableNode id={item} index={index} key={index}>
 													<Node key={index} node={data[item]} title={item} />
 												</DragableNode>
 											))}
@@ -117,30 +105,29 @@ const App = () => {
 									</div>
 								</DropableArea>
 							</div>
-							<div className="w-full ">
-								<div className='h-[28rem]'>
-								<DropableArea
-									id="graphArea"
-									direction="horizontal"
-									isDropDisabled={!allowDrop.includes('graphArea')}>
-									<Graph nodes={graphNodes}>
-										{graphNodes.map((node, index) => (
-											<DragableNode
-												id={node.uuid + 'graphNodes'}
-												node={node}
-												index={index}
-												propStyles={{
-													width:
-														(node.totalDistance / totalDistance) * 100 + '%',
-												}}
-												isResizing={isDragDisabled}
-												classes="w-full"
-												key={node.uuid + isDragDisabled}>
-												<NodeOnGraph key={node.uuid} node={node} />
-											</DragableNode>
-										))}
-									</Graph>
-								</DropableArea>
+							<div className="w-3/4 " id="graphArea">
+								<div className="h-[28rem]">
+									<DropableArea
+										id="graphArea"
+										direction="horizontal"
+										isDropDisabled={!allowDrop.includes('graphArea')}>
+										<Graph nodes={graphNodes}>
+											{graphNodes.map((node, index) => (
+												<DragableNode
+													id={node.uuid + 'graphNodes'}
+													node={node}
+													index={index}
+													propStyles={{
+														width: 'fit-content',
+													}}
+													key={node.uuid}>
+													<div>
+														<NodeOnGraph key={node.uuid} node={node} />
+													</div>
+												</DragableNode>
+											))}
+										</Graph>
+									</DropableArea>
 								</div>
 								<div>
 									<DropableArea

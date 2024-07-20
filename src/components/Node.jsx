@@ -22,7 +22,7 @@ const Node = ({ node, title }) => {
 	};
 
 	return (
-		<div className="relative group mx-auto my-2 flex flex-row-reverse bg-[#F2F2F2] border border-gray-200 rounded-lg shadow-lg h-16">
+		<div className="relative group my-2 flex flex-row-reverse bg-[#F2F2F2] border border-gray-200 rounded-lg shadow-lg h-16">
 			<div className="absolute left-1/2 bottom-full mb-2 hidden group-hover:block w-96">
 				<Tooltip
 					text={`${title
@@ -34,7 +34,7 @@ const Node = ({ node, title }) => {
 			</div>
 
 			<div
-				className="flex space-x-1 items-end w-full rounded-b-lg"
+				className="flex gap-2 items-end w-full rounded-b-lg"
 				onClick={() => addNodeToGraph(node)}>
 				{node.map((item, index) => (
 					<div

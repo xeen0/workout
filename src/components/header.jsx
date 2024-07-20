@@ -1,13 +1,11 @@
-import { useAtom } from 'jotai';
+import { useSetAtom } from 'jotai';
 import React from 'react';
-import { graphNodesAtom, selectedWorkoutAtom } from '../Atoms/GraphNodesAtom';
+import { graphNodesAtom } from '../Atoms/GraphNodesAtom';
 
 const Header = () => {
-	const [graphNodes, setGraphNodes] = useAtom(graphNodesAtom);
-	const [_, setSelectedWorkout] = useAtom(selectedWorkoutAtom);
+	const setGraphNodes = useSetAtom(graphNodesAtom);
 	const clearGraphNodes = () => {
 		setGraphNodes([]);
-		setSelectedWorkout([]);
 	};
 
 	return (

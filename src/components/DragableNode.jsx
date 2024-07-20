@@ -1,5 +1,7 @@
 import { Draggable } from '@hello-pangea/dnd';
+import { useAtom } from 'jotai';
 import React from 'react';
+import { isResizingAtom } from '../Atoms/GraphNodesAtom';
 
 function getStyle(style, snapshot, propStyles = {}) {
 	if (!snapshot.isDropAnimating) {
@@ -14,7 +16,8 @@ function getStyle(style, snapshot, propStyles = {}) {
 	};
 }
 
-const DragabbleNode = ({ id, index, children, propStyles, isResizing }) => {
+const DragabbleNode = ({ id, index, children, propStyles }) => {
+	const [isResizing] = useAtom(isResizingAtom);
 	return (
 		<Draggable
 			draggableId={id}
